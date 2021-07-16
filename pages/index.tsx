@@ -3,6 +3,7 @@ import { providers } from 'ethers'
 import Head from 'next/head'
 import { useCallback, useEffect, useReducer } from 'react'
 import Web3Modal from 'web3modal'
+import { ellipseAddress, getChainData } from '../lib/utilities'
 
 const providerOptions = {
   walletconnect: {
@@ -25,7 +26,7 @@ if (typeof window !== 'undefined') {
 type StateType = {
   web3Provider?: any
   address?: string
-  network?: string | number
+  network?: number
 }
 
 type ActionType =
@@ -106,13 +107,14 @@ export const Home = (): JSX.Element => {
     })
 
     // Subscribe to chainId change
-    provider.on('chainChanged', async (chainId: number) => {
+    provider.on('chainChanged', async (chainId: string) => {
       // eslint-disable-next-line no-console
       console.log('chainChanged', chainId)
-      // const network = await web3Provider.getNetwork()
+      const splitChainId = chainId.split('0x')
+      const network = splitChainId[1] === '2a' ? 42 : parseInt(splitChainId[1])
       dispatch({
         type: 'SET_NETWORK',
-        network: chainId,
+        network,
       })
     })
 
@@ -137,7 +139,7 @@ export const Home = (): JSX.Element => {
       type: 'SET_WEB3_PROVIDER',
       web3Provider,
       address,
-      network: network.name,
+      network: network.chainId,
     })
   }, [])
 
@@ -154,6 +156,8 @@ export const Home = (): JSX.Element => {
     }
   }, [connect])
 
+  const chainData = state.network && getChainData(state.network)
+
   return (
     <div className="container">
       <Head>
@@ -162,14 +166,18 @@ export const Home = (): JSX.Element => {
       </Head>
 
       <header>
-        <p>
-          Address: <br />
-          {state.address}
-        </p>
-        <p>
-          Network: <br />
-          {state.network}
-        </p>
+        {state.address && (
+          <div className="grid">
+            <div>
+              <p>Network:</p>
+              <p>{chainData?.name}</p>
+            </div>
+            <div>
+              <p>Address:</p>
+              <p>{ellipseAddress(state.address)}</p>
+            </div>
+          </div>
+        )}
       </header>
 
       <main>
@@ -186,24 +194,25 @@ export const Home = (): JSX.Element => {
       </main>
 
       <style jsx>{`
-        .container {
-          min-height: 100vh;
-          padding: 0 0.5rem;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-        }
-
-        header {
-          padding: 2rem 0;
-        }
-
         main {
           padding: 5rem 0;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
+          text-align: center;
+        }
+
+        p {
+          margin-top: 0;
+        }
+
+        .container {
+          padding: 2rem;
+          margin: 0 auto;
+          max-width: 1200px;
+        }
+
+        .grid {
+          display: grid;
+          grid-template-columns: auto auto;
+          justify-content: space-between;
         }
 
         .button {
