@@ -24,6 +24,7 @@ if (typeof window !== 'undefined') {
 }
 
 type StateType = {
+  provider?: any
   web3Provider?: any
   address?: string
   chainId?: number
@@ -32,6 +33,7 @@ type StateType = {
 type ActionType =
   | {
       type: 'SET_WEB3_PROVIDER'
+      provider?: StateType['provider']
       web3Provider?: StateType['web3Provider']
       address?: StateType['address']
       chainId?: StateType['chainId']
@@ -49,6 +51,7 @@ type ActionType =
     }
 
 const initialState: StateType = {
+  provider: null,
   web3Provider: null,
   address: null,
   chainId: null,
@@ -59,6 +62,7 @@ function reducer(state: StateType, action: ActionType): StateType {
     case 'SET_WEB3_PROVIDER':
       return {
         ...state,
+        provider: action.provider,
         web3Provider: action.web3Provider,
         address: action.address,
         chainId: action.chainId,
@@ -88,39 +92,6 @@ export const Home = (): JSX.Element => {
     // using web3Modal to connect. Can be MetaMask or WalletConnect.
     const provider = await web3Modal.connect()
 
-    if (!provider.on) {
-      return
-    }
-
-    provider.on('accountsChanged', (accounts: string[]) => {
-      // eslint-disable-next-line no-console
-      console.log('accountsChanged', accounts)
-      dispatch({
-        type: 'SET_ADDRESS',
-        address: accounts[0],
-      })
-    })
-
-    // Subscribe to chainId change
-    provider.on('chainChanged', async (chainId: string) => {
-      // eslint-disable-next-line no-console
-      console.log('chainChanged', chainId)
-      const splitChainId = chainId.split('0x')
-      const parsedChainId =
-        splitChainId[1] === '2a' ? 42 : parseInt(splitChainId[1])
-      dispatch({
-        type: 'SET_CHAIN_ID',
-        chainId: parsedChainId,
-      })
-    })
-
-    // Subscribe to provider disconnection
-    provider.on('disconnect', (error: { code: number; message: string }) => {
-      // eslint-disable-next-line no-console
-      console.log('disconnect', error)
-      disconnect()
-    })
-
     // We plug the initial `provider` into ethers.js and get back
     // a Web3Provider. This will add on methods from ethers.js and
     // event listeners such as `.on()` will be different.
@@ -133,6 +104,7 @@ export const Home = (): JSX.Element => {
 
     dispatch({
       type: 'SET_WEB3_PROVIDER',
+      provider,
       web3Provider,
       address,
       chainId: network.chainId,
@@ -146,11 +118,56 @@ export const Home = (): JSX.Element => {
     })
   }
 
+  // Auto connect to the cached provider
   useEffect(() => {
     if (web3Modal.cachedProvider) {
       connect()
     }
   }, [connect])
+
+  useEffect(() => {
+    if (state?.provider?.on) {
+      const handleAccountsChanged = (accounts: string[]) => {
+        // eslint-disable-next-line no-console
+        console.log('accountsChanged', accounts)
+        dispatch({
+          type: 'SET_ADDRESS',
+          address: accounts[0],
+        })
+      }
+
+      const handleChainChanged = (accounts: string[]) => {
+        // eslint-disable-next-line no-console
+        console.log('accountsChanged', accounts)
+        dispatch({
+          type: 'SET_ADDRESS',
+          address: accounts[0],
+        })
+      }
+
+      const handleDisconnect = (error: { code: number; message: string }) => {
+        // eslint-disable-next-line no-console
+        console.log('disconnect', error)
+        disconnect()
+      }
+
+      state.provider.on('accountsChanged', handleAccountsChanged)
+      state.provider.on('chainChanged', handleChainChanged)
+      state.provider.on('disconnect', handleDisconnect)
+
+      // Subscription Cleanup
+      return () => {
+        if (state.provider.removeListener) {
+          state.provider.removeListener(
+            'accountsChanged',
+            handleAccountsChanged
+          )
+          state.provider.removeListener('chainChanged', handleChainChanged)
+          state.provider.removeListener('disconnect', handleDisconnect)
+        }
+      }
+    }
+  }, [state.provider])
 
   const chainData = getChainData(state.chainId)
 
@@ -165,11 +182,11 @@ export const Home = (): JSX.Element => {
         {state.address && (
           <div className="grid">
             <div>
-              <p>Network:</p>
+              <p className="mb-1">Network:</p>
               <p>{chainData?.name}</p>
             </div>
             <div>
-              <p>Address:</p>
+              <p className="mb-1">Address:</p>
               <p>{ellipseAddress(state.address)}</p>
             </div>
           </div>
@@ -218,6 +235,13 @@ export const Home = (): JSX.Element => {
           border-radius: 0.5rem;
           color: #fff;
           font-size: 1.2rem;
+        }
+
+        .mb-0 {
+          margin-bottom: 0;
+        }
+        .mb-1 {
+          margin-bottom: 0.25rem;
         }
       `}</style>
 
