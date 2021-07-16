@@ -26,7 +26,7 @@ if (typeof window !== 'undefined') {
 type StateType = {
   web3Provider?: any
   address?: string
-  network?: number
+  chainId?: number
 }
 
 type ActionType =
@@ -34,15 +34,15 @@ type ActionType =
       type: 'SET_WEB3_PROVIDER'
       web3Provider?: StateType['web3Provider']
       address?: StateType['address']
-      network?: StateType['network']
+      chainId?: StateType['chainId']
     }
   | {
       type: 'SET_ADDRESS'
       address?: StateType['address']
     }
   | {
-      type: 'SET_NETWORK'
-      network?: StateType['network']
+      type: 'SET_CHAIN_ID'
+      chainId?: StateType['chainId']
     }
   | {
       type: 'RESET_WEB3_PROVIDER'
@@ -51,7 +51,7 @@ type ActionType =
 const initialState: StateType = {
   web3Provider: null,
   address: null,
-  network: null,
+  chainId: null,
 }
 
 function reducer(state: StateType, action: ActionType): StateType {
@@ -61,25 +61,20 @@ function reducer(state: StateType, action: ActionType): StateType {
         ...state,
         web3Provider: action.web3Provider,
         address: action.address,
-        network: action.network,
+        chainId: action.chainId,
       }
     case 'SET_ADDRESS':
       return {
         ...state,
         address: action.address,
       }
-    case 'SET_NETWORK':
+    case 'SET_CHAIN_ID':
       return {
         ...state,
-        network: action.network,
+        chainId: action.chainId,
       }
     case 'RESET_WEB3_PROVIDER':
-      return {
-        ...state,
-        web3Provider: null,
-        address: null,
-        network: null,
-      }
+      return initialState
     default:
       throw new Error()
   }
@@ -111,10 +106,11 @@ export const Home = (): JSX.Element => {
       // eslint-disable-next-line no-console
       console.log('chainChanged', chainId)
       const splitChainId = chainId.split('0x')
-      const network = splitChainId[1] === '2a' ? 42 : parseInt(splitChainId[1])
+      const parsedChainId =
+        splitChainId[1] === '2a' ? 42 : parseInt(splitChainId[1])
       dispatch({
-        type: 'SET_NETWORK',
-        network,
+        type: 'SET_CHAIN_ID',
+        chainId: parsedChainId,
       })
     })
 
@@ -139,7 +135,7 @@ export const Home = (): JSX.Element => {
       type: 'SET_WEB3_PROVIDER',
       web3Provider,
       address,
-      network: network.chainId,
+      chainId: network.chainId,
     })
   }, [])
 
@@ -156,7 +152,7 @@ export const Home = (): JSX.Element => {
     }
   }, [connect])
 
-  const chainData = state.network && getChainData(state.network)
+  const chainData = getChainData(state.chainId)
 
   return (
     <div className="container">

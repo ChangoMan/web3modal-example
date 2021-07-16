@@ -1,7 +1,10 @@
 import supportedChains from './chains'
 import { IChainData } from './types'
 
-export function getChainData(chainId: number): IChainData {
+export function getChainData(chainId?: number): IChainData {
+  if (!chainId) {
+    return null
+  }
   const chainData = supportedChains.filter(
     (chain: any) => chain.chain_id === chainId
   )[0]
