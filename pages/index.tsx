@@ -8,21 +8,6 @@ import { ellipseAddress, getChainData } from '../lib/utilities'
 
 const INFURA_ID = '460f40a260564ac4a4f4b3fffb032dad'
 
-// Coinbase walletLink init
-// let walletLink
-// let walletLinkProvider
-// if (typeof window !== 'undefined') {
-//   walletLink = new WalletLink({
-//     appName: 'coinbase',
-//   })
-
-//   // WalletLink provider
-//   walletLinkProvider = walletLink.makeWeb3Provider(
-//     `https://mainnet.infura.io/v3/${INFURA_ID}`,
-//     1
-//   )
-// }
-
 const providerOptions = {
   walletconnect: {
     package: WalletConnectProvider, // required
