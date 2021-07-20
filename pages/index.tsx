@@ -86,6 +86,7 @@ function reducer(state: StateType, action: ActionType): StateType {
 
 export const Home = (): JSX.Element => {
   const [state, dispatch] = useReducer(reducer, initialState)
+  const { provider, web3Provider, address, chainId } = state
 
   const connect = useCallback(async function () {
     // This is the initial `provider` that is returned when
@@ -111,12 +112,18 @@ export const Home = (): JSX.Element => {
     })
   }, [])
 
-  async function disconnect() {
-    await web3Modal.clearCachedProvider()
-    dispatch({
-      type: 'RESET_WEB3_PROVIDER',
-    })
-  }
+  const disconnect = useCallback(
+    async function () {
+      await web3Modal.clearCachedProvider()
+      if (provider?.disconnect && typeof provider.disconnect === 'function') {
+        await provider.disconnect()
+      }
+      dispatch({
+        type: 'RESET_WEB3_PROVIDER',
+      })
+    },
+    [provider]
+  )
 
   // Auto connect to the cached provider
   useEffect(() => {
@@ -125,8 +132,11 @@ export const Home = (): JSX.Element => {
     }
   }, [connect])
 
+  // A `provider` should come with EIP-1193 events. We'll listen for those events
+  // here so that when a user switches accounts or networks, we can update the
+  // local React state with that new information.
   useEffect(() => {
-    if (state?.provider?.on) {
+    if (provider?.on) {
       const handleAccountsChanged = (accounts: string[]) => {
         // eslint-disable-next-line no-console
         console.log('accountsChanged', accounts)
@@ -151,25 +161,22 @@ export const Home = (): JSX.Element => {
         disconnect()
       }
 
-      state.provider.on('accountsChanged', handleAccountsChanged)
-      state.provider.on('chainChanged', handleChainChanged)
-      state.provider.on('disconnect', handleDisconnect)
+      provider.on('accountsChanged', handleAccountsChanged)
+      provider.on('chainChanged', handleChainChanged)
+      provider.on('disconnect', handleDisconnect)
 
       // Subscription Cleanup
       return () => {
-        if (state.provider.removeListener) {
-          state.provider.removeListener(
-            'accountsChanged',
-            handleAccountsChanged
-          )
-          state.provider.removeListener('chainChanged', handleChainChanged)
-          state.provider.removeListener('disconnect', handleDisconnect)
+        if (provider.removeListener) {
+          provider.removeListener('accountsChanged', handleAccountsChanged)
+          provider.removeListener('chainChanged', handleChainChanged)
+          provider.removeListener('disconnect', handleDisconnect)
         }
       }
     }
-  }, [state.provider])
+  }, [provider, disconnect])
 
-  const chainData = getChainData(state.chainId)
+  const chainData = getChainData(chainId)
 
   return (
     <div className="container">
@@ -179,7 +186,7 @@ export const Home = (): JSX.Element => {
       </Head>
 
       <header>
-        {state.address && (
+        {address && (
           <div className="grid">
             <div>
               <p className="mb-1">Network:</p>
@@ -187,7 +194,7 @@ export const Home = (): JSX.Element => {
             </div>
             <div>
               <p className="mb-1">Address:</p>
-              <p>{ellipseAddress(state.address)}</p>
+              <p>{ellipseAddress(address)}</p>
             </div>
           </div>
         )}
@@ -195,7 +202,7 @@ export const Home = (): JSX.Element => {
 
       <main>
         <h1 className="title">Web3Modal Example</h1>
-        {state.web3Provider ? (
+        {web3Provider ? (
           <button className="button" type="button" onClick={disconnect}>
             Disconnect
           </button>
@@ -230,7 +237,7 @@ export const Home = (): JSX.Element => {
 
         .button {
           padding: 1rem 1.5rem;
-          background: ${state.web3Provider ? 'red' : 'green'};
+          background: ${web3Provider ? 'red' : 'green'};
           border: none;
           border-radius: 0.5rem;
           color: #fff;
