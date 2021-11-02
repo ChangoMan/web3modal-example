@@ -171,13 +171,9 @@ export const Home = (): JSX.Element => {
         })
       }
 
-      const handleChainChanged = (accounts: string[]) => {
-        // eslint-disable-next-line no-console
-        console.log('accountsChanged', accounts)
-        dispatch({
-          type: 'SET_ADDRESS',
-          address: accounts[0],
-        })
+      // https://docs.ethers.io/v5/concepts/best-practices/#best-practices--network-changes
+      const handleChainChanged = (_hexChainId: string) => {
+        window.location.reload()
       }
 
       const handleDisconnect = (error: { code: number; message: string }) => {
