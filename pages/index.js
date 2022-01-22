@@ -1,8 +1,9 @@
 import WalletConnectProvider from '@walletconnect/web3-provider'
+import { Web3Context } from '../context/Web3Context'
 import { providers } from 'ethers'
 import Head from 'next/head'
 import Header from '../components/Header'
-import { useCallback, useEffect, useReducer } from 'react'
+import { useCallback, useEffect, useContext } from 'react'
 import Web3Modal from 'web3modal'
 import { ellipseAddress, getChainData } from '../lib/utilities.js'
 
@@ -26,42 +27,8 @@ if (typeof window !== 'undefined') {
   })
 }
 
-const initialState = {
-  provider: null,
-  web3Provider: null,
-  address: null,
-  chainId: null,
-}
-
-function reducer(state, action) {
-  switch (action.type) {
-    case 'SET_WEB3_PROVIDER':
-      return {
-        ...state,
-        provider: action.provider,
-        web3Provider: action.web3Provider,
-        address: action.address,
-        chainId: action.chainId,
-      }
-    case 'SET_ADDRESS':
-      return {
-        ...state,
-        address: action.address,
-      }
-    case 'SET_CHAIN_ID':
-      return {
-        ...state,
-        chainId: action.chainId,
-      }
-    case 'RESET_WEB3_PROVIDER':
-      return initialState
-    default:
-      throw new Error()
-  }
-}
-
 export const Home = () => {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const { state, dispatch } = useContext(Web3Context)
   const { provider, web3Provider, address, chainId } = state
 
   const connect = useCallback(async function () {
