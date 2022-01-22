@@ -1,6 +1,7 @@
 import WalletConnectProvider from '@walletconnect/web3-provider'
 import { providers } from 'ethers'
 import Head from 'next/head'
+import Header from '../components/Header'
 import { useCallback, useEffect, useReducer } from 'react'
 import Web3Modal from 'web3modal'
 import { ellipseAddress, getChainData } from '../lib/utilities.js'
@@ -151,6 +152,7 @@ export const Home = () => {
 
   return (
     <div className="container">
+      <Header>Keeek</Header>
       <Head>
         <title>Create Next App</title>
         <link rel="icon" href="/favicon.ico" />
@@ -183,60 +185,6 @@ export const Home = () => {
           </button>
         )}
       </main>
-
-      <style jsx>{`
-        main {
-          padding: 5rem 0;
-          text-align: center;
-        }
-
-        p {
-          margin-top: 0;
-        }
-
-        .container {
-          padding: 2rem;
-          margin: 0 auto;
-          max-width: 1200px;
-        }
-
-        .grid {
-          display: grid;
-          grid-template-columns: auto auto;
-          justify-content: space-between;
-        }
-
-        .button {
-          padding: 1rem 1.5rem;
-          background: ${web3Provider ? 'red' : 'green'};
-          border: none;
-          border-radius: 0.5rem;
-          color: #fff;
-          font-size: 1.2rem;
-        }
-
-        .mb-0 {
-          margin-bottom: 0;
-        }
-        .mb-1 {
-          margin-bottom: 0.25rem;
-        }
-      `}</style>
-
-      <style jsx global>{`
-        html,
-        body {
-          padding: 0;
-          margin: 0;
-          font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
-            Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue,
-            sans-serif;
-        }
-
-        * {
-          box-sizing: border-box;
-        }
-      `}</style>
     </div>
   )
 }
