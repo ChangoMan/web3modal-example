@@ -1,22 +1,10 @@
-import { createContext } from 'react'
+import Web3ContextProvider from '../context/Web3Context'
 
 function MyApp({ Component, pageProps }) {
-  const AppContext = createContext()
-  const wallet = {
-    provider: null,
-    web3Provider: null,
-    address: null,
-    chainId: null,
-  }
-
   return (
-    <AppContext.Provider
-      value={{
-        state: { wallet },
-      }}
-    >
+    <Web3ContextProvider>
       <Component {...pageProps} />
-    </AppContext.Provider>
+    </Web3ContextProvider>
   )
 }
 
